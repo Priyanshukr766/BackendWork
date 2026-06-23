@@ -41,7 +41,7 @@ const app = express();
 // CORS — allow requests from the frontend origin
 // Set CORS_ORIGIN in Render env vars to your deployed frontend URL
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5174',
 }));
 
 // Parse JSON bodies
