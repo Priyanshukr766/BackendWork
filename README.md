@@ -36,18 +36,22 @@ I made the following design decisions. I have explained my reasoning here:
 
 ### 1. Cursor Pagination over OFFSET
 I used a cursor (last seen timestamp + ID) instead of page numbers. 
+<br/>
 **Why:** Traditional `OFFSET` gets slower the deeper you paginate and causes duplicated/skipped products when new data is added. Cursors act as an exact bookmark, keeping pagination instantly fast regardless of depth.
 
 ### 2. Deterministic Ordering (`updated_at + id`)
 I sort by `updated_at DESC, id DESC`.
+<br/>
 **Why:** Sorting only by time is risky because multiple products can have the exact same timestamp. Adding the unique `id` as a tiebreaker guarantees every product stays in a strict, predictable order.
 
 ### 3. Composite Indexing
 I created a single database index covering `(category, updated_at DESC, id DESC)`.
+<br/>
 **Why:** This exactly mirrors my SQL query. It allows PostgreSQL to filter by category and instantly return pre-sorted rows, entirely skipping expensive manual sorting steps.
 
 ### 4. `has_more` without `COUNT(*)`
 The database query limits results to 21 items, even though the page size is 20.
+<br/>
 **Why:** Counting all 200,000 rows just to see if a next page exists is slow. If the database returns 21 items, I immediately know there is a next page (`has_more: true`), and I simply trim the 21st item before sending it to the frontend.
 
 ---
