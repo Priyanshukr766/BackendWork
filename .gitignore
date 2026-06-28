@@ -17,3 +17,6 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Internal documentation
+docs/
