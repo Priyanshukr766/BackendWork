@@ -34,14 +34,21 @@ graph TD
 
 I made the following design decisions. I have explained my reasoning here:
 
-- **Cursor Pagination over OFFSET:** I used a cursor (last seen timestamp + ID) instead of page numbers. 
-  *Why:* Traditional `OFFSET` gets slower the deeper you paginate and causes duplicated/skipped products when new data is added. Cursors act as an exact bookmark, keeping pagination instantly fast regardless of depth.
-- **Deterministic Ordering (`updated_at + id`):** I sort by `updated_at DESC, id DESC`.
-  *Why:* Sorting only by time is risky because multiple products can have the exact same timestamp. Adding the unique `id` as a tiebreaker guarantees every product stays in a strict, predictable order.
-- **Composite Indexing:** I created a single database index covering `(category, updated_at DESC, id DESC)`.
-  *Why:* This exactly mirrors my SQL query. It allows PostgreSQL to filter by category and instantly return pre-sorted rows, entirely skipping expensive manual sorting steps.
-- **`has_more` without `COUNT(*)`:** The database query limits results to 21 items, even though the page size is 20.
-  *Why:* Counting all 200,000 rows just to see if a next page exists is slow. If the database returns 21 items, I immediately know there is a next page (`has_more: true`), and I simply trim the 21st item before sending it to the frontend.
+### 1. Cursor Pagination over OFFSET
+I used a cursor (last seen timestamp + ID) instead of page numbers. 
+> **Why:** Traditional `OFFSET` gets slower the deeper you paginate and causes duplicated/skipped products when new data is added. Cursors act as an exact bookmark, keeping pagination instantly fast regardless of depth.
+
+### 2. Deterministic Ordering (`updated_at + id`)
+I sort by `updated_at DESC, id DESC`.
+> **Why:** Sorting only by time is risky because multiple products can have the exact same timestamp. Adding the unique `id` as a tiebreaker guarantees every product stays in a strict, predictable order.
+
+### 3. Composite Indexing
+I created a single database index covering `(category, updated_at DESC, id DESC)`.
+> **Why:** This exactly mirrors my SQL query. It allows PostgreSQL to filter by category and instantly return pre-sorted rows, entirely skipping expensive manual sorting steps.
+
+### 4. `has_more` without `COUNT(*)`
+The database query limits results to 21 items, even though the page size is 20.
+> **Why:** Counting all 200,000 rows just to see if a next page exists is slow. If the database returns 21 items, I immediately know there is a next page (`has_more: true`), and I simply trim the 21st item before sending it to the frontend.
 
 ---
 
